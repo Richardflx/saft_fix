@@ -201,10 +201,6 @@ Desktop.ini
 *.zip
 *.tar.gz
 
-# PyInstaller spec files (keep the main one, ignore temporary ones)
-SAFT-Fix-windows.spec
-SAFT-Fix-linux.spec
-
 # Wine prefix (if using Wine for Windows builds)
 .wine-saft-fix/
 .wine/
