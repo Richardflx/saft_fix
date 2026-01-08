@@ -1,0 +1,123 @@
+name: Build SAFT-Fix
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Create spec file for Windows
+        run: |
+          @"
+          # -*- mode: python ; coding: utf-8 -*-
+          
+          a = Analysis(
+              ['saft_fix_gui.py'],
+              pathex=[],
+              binaries=[],
+              datas=[],
+              hiddenimports=[],
+              hookspath=[],
+              hooksconfig={},
+              runtime_hooks=[],
+              excludes=[],
+              noarchive=False,
+              optimize=0,
+          )
+          pyz = PYZ(a.pure)
+          
+          exe = EXE(
+              pyz,
+              a.scripts,
+              a.binaries,
+              a.datas,
+              [],
+              name='SAFT-Fix',
+              debug=False,
+              bootloader_ignore_signals=False,
+              strip=False,
+              upx=True,
+              upx_exclude=[],
+              runtime_tmpdir=None,
+              console=False,
+              disable_windowed_traceback=False,
+          )
+          "@ | Out-File -FilePath SAFT-Fix-windows.spec -Encoding utf8
+        shell: pwsh
+      
+      - name: Build Windows executable
+        run: |
+          python -m PyInstaller SAFT-Fix-windows.spec --clean --noconfirm
+      
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SAFT-Fix-Windows
+          path: dist/SAFT-Fix.exe
+  
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Build Linux executable
+        run: |
+          ./build_linux.sh
+      
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SAFT-Fix-Linux
+          path: dist/SAFT-Fix
+  
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Build macOS app
+        run: |
+          ./build_mac_arm.sh
+      
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SAFT-Fix-macOS
+          path: dist/SAFT-Fix.app
+
